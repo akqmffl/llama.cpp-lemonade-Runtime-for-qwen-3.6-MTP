@@ -259,7 +259,7 @@ wnxor92@gmail.com
 If this work is useful to you, donations help support continued development,
 testing, packaging, and open-source optimization work for local LLM runtimes.
 
-USDT address:
+USDT(trx, Tron Network) address:
 
 ```text
 TU4rcQsgScdvsL74maMzjVBUuKwgq4UrKr
