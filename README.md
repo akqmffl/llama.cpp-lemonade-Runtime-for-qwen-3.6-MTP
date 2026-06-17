@@ -1,8 +1,8 @@
 # Qwen3.6 MTP Windows ROCm gfx1151 Split Package
 
 Hardware target: this package is built for AMD Ryzen AI Max Series APUs with
-RDNA 3.5 graphics (`gfx1151`). It is not a generic ROCm runtime for other AMD
-GPU architectures.
+RDNA 3.5 graphics (`gfx1151`). 
+It is not a generic ROCm runtime for other AMD GPU architectures.
 
 The deployable runtime trees are distributed as GitHub Release assets, not as
 files committed to the git tree.
