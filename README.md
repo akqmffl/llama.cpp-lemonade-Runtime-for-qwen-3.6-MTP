@@ -66,7 +66,7 @@ From the directory where you downloaded the ZIP:
 mkdir llama.cpp
 tar -xf llama-b1294-windows-rocm-gfx1151-x64.zip -C llama.cpp
 cd llama.cpp
-scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf" -Port 8080
+scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf" -BindHost 127.0.0.1 -Port 8080
 ```
 
 This command uses:
@@ -83,6 +83,9 @@ required process-level environment variables, builds the `llama-server.exe`
 argument list, and starts the server. It does not permanently change Windows
 user or system environment variables.
 
+`-BindHost 127.0.0.1` and `-Port 8080` are local example defaults; change them
+only when the target PC needs a different bind address or port.
+
 To run without the helper scripts, set the same environment variables and call
 the server directly:
 
@@ -95,11 +98,14 @@ set LLAMA_MTP_FAST_VERIFY_MAX_PROMPT_TOKENS=0
 set LLAMA_MTP_SEPARATE_SCHED=1
 set LLAMA_MTP_GDN_DIRECT_SNAPSHOT=1
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX=1
+rem 4096 is the conservative default. 8192 or larger is also supported on this gfx1151 runtime after local throughput retesting.
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX_TILE=4096
+set LLAMA_HOST=127.0.0.1
+set LLAMA_PORT=8080
 
 runtime\llama-server.exe ^
-  --host 127.0.0.1 ^
-  --port 8080 ^
+  --host %LLAMA_HOST% ^
+  --port %LLAMA_PORT% ^
   --model "C:\path\to\model.gguf" ^
   --ctx-size 131072 ^
   --gpu-layers all ^
@@ -120,6 +126,11 @@ Run the command from the extracted `llama.cpp` folder. The `--ctx-size 131072`
 value is the 128K context production setting used for the recorded n=2 anchor;
 reduce it if the target system does not have enough memory for that context.
 
+`LLAMA_HOST=127.0.0.1` and `LLAMA_PORT=8080` are example local defaults. Change
+`LLAMA_PORT` when another service already uses that port. Keep
+`LLAMA_HOST=127.0.0.1` for local-only access; use another bind address only
+when you intentionally expose the server outside the local machine.
+
 ### B. Lemonade Integration With Helper Scripts
 
 Use this path when you want Lemonade to launch this runtime.
@@ -137,13 +148,13 @@ cd lemonade
 For an existing matching ROCm Lemonade runtime:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-runtime.ps1 -Mode minimal -TargetRuntimeDir "C:\path\to\lemonade\bin\llamacpp\rocm-mtp-pr22673" -Backup
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-runtime.ps1 -Mode minimal -TargetRuntimeDir "C:\path\to\lemonade\bin\llamacpp\qwen36-mtp-gfx1151" -Backup
 ```
 
 For a clean or complete replacement runtime:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-runtime.ps1 -Mode full -TargetRuntimeDir "C:\path\to\lemonade\bin\llamacpp\rocm-mtp-pr22673" -Backup
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-runtime.ps1 -Mode full -TargetRuntimeDir "C:\path\to\lemonade\bin\llamacpp\qwen36-mtp-gfx1151" -Backup
 ```
 
 2. Apply the production environment preset.
@@ -155,7 +166,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-env.ps1 -Pre
 3. Apply the Lemonade `llamacpp` config values.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-config.ps1 -ConfigPath "C:\path\to\lemonade\config.json" -RocmBin "C:\path\to\lemonade\bin\llamacpp\rocm-mtp-pr22673\llama-server.exe"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-config.ps1 -ConfigPath "C:\path\to\lemonade\config.json" -RocmBin "C:\path\to\lemonade\bin\llamacpp\qwen36-mtp-gfx1151\llama-server.exe"
 ```
 
 Restart Lemonade after changing runtime files, environment variables, or
@@ -178,8 +189,12 @@ Source folder, full replacement:
 lemonade\runtime\full-replacement\
 
 Target folder:
-C:\path\to\lemonade\bin\llamacpp\rocm-mtp-pr22673\
+C:\path\to\lemonade\bin\llamacpp\qwen36-mtp-gfx1151\
 ```
+
+The `qwen36-mtp-gfx1151` folder name is only a recommended local runtime folder
+name. You may use a different folder name, but `rocm_bin` must point to the
+matching `llama-server.exe` inside that same folder.
 
 Use `minimal-overlay` only when the target folder already contains compatible
 ROCm vendor DLLs plus the `hipblaslt\` and `rocblas\` runtime library folders.
@@ -234,7 +249,7 @@ actual target PC path:
   "llamacpp": {
     "backend": "rocm",
     "prefer_system": true,
-    "rocm_bin": "C:\\path\\to\\lemonade\\bin\\llamacpp\\rocm-mtp-pr22673\\llama-server.exe",
+    "rocm_bin": "C:\\path\\to\\lemonade\\bin\\llamacpp\\qwen36-mtp-gfx1151\\llama-server.exe",
     "args": "--flash-attn off --parallel 1 --spec-type mtp --spec-draft-n-max 2 --spec-draft-n-min 1 --spec-draft-p-min 0.75 --cache-ram 0 --no-mmap --ubatch-size 512 --cache-type-k f16 --cache-type-v f16"
   }
 }
