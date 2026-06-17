@@ -2,6 +2,7 @@
 
 Hardware target: this package is built for AMD Ryzen AI Max Series APUs with
 RDNA 3.5 graphics (`gfx1151`). 
+
 It is not a generic ROCm runtime for other AMD GPU architectures.
 
 The deployable runtime trees are distributed as GitHub Release assets, not as
