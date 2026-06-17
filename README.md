@@ -5,6 +5,15 @@ RDNA 3.5 graphics (`gfx1151`).
 
 It is not a generic ROCm runtime for other AMD GPU architectures.
 
+Recommended model for the highest recorded performance:
+[akqmffl/qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored-GGUF](https://huggingface.co/akqmffl/qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored-GGUF).
+
+The benchmark numbers documented for this runtime were recorded with
+`qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored.gguf`. Use that GGUF
+when you want the best reproduced Qwen3.6 MTP performance from this package.
+Other Qwen3.6 MTP GGUFs may run, but they are not the model/runtime pairing
+used for the published `tok/s` and MTP acceptance anchors.
+
 The deployable runtime trees are distributed as GitHub Release assets, not as
 files committed to the git tree.
 
