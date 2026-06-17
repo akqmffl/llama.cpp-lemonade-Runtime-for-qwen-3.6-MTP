@@ -18,7 +18,6 @@ files committed to the git tree.
 ```text
 README.md
 .gitattributes
-assets/usdt-qr.png
 GitHub Release asset: llama-b1294-windows-rocm-gfx1151-x64.zip
   README.md
   runtime/   Full directly built llama.cpp runtime payload.
