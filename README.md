@@ -49,20 +49,22 @@ the matching ROCm vendor DLLs plus `hipblaslt/` and `rocblas/` directories.
 
 ## Quick Start
 
-First extract `llama-b1294-windows-rocm-gfx1151-x64.zip` into a folder named
-`llama.cpp`, or extract `lemonade-b1294-windows-rocm-gfx1151-x64.zip` into a
-folder named `lemonade`. Replace every placeholder path such as
-`C:\path\to\model.gguf` or `C:\path\to\lemonade` with the actual path on the
-target PC.
+The ZIP files are self-rooted: their contents start with `README.md`,
+`runtime\`, `settings\`, and related folders, not with an extra top-level
+wrapper directory. Create the destination folder first, then extract the ZIP
+into it. Replace every placeholder path such as `C:\path\to\model.gguf` or
+`C:\path\to\lemonade` with the actual path on the target PC.
 
 ### A. Standalone llama.cpp
 
 Use this path when you want to run `llama-server.exe` directly, without
 Lemonade.
 
-From the parent directory of the extracted `llama.cpp` folder:
+From the directory where you downloaded the ZIP:
 
 ```cmd
+mkdir llama.cpp
+tar -xf llama-b1294-windows-rocm-gfx1151-x64.zip -C llama.cpp
 cd llama.cpp
 scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf" -Port 8080
 ```
@@ -95,16 +97,38 @@ set LLAMA_MTP_GDN_DIRECT_SNAPSHOT=1
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX=1
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX_TILE=4096
 
-runtime\llama-server.exe --host 127.0.0.1 --port 8080 --model "C:\path\to\model.gguf" --ctx-size 131072 --gpu-layers all --parallel 1 --no-mmap --flash-attn off --cache-type-k f16 --cache-type-v f16 --cache-ram 0 --spec-type mtp --spec-draft-n-max 2 --spec-draft-n-min 1 --spec-draft-p-min 0.75 --ubatch-size 512
+runtime\llama-server.exe ^
+  --host 127.0.0.1 ^
+  --port 8080 ^
+  --model "C:\path\to\model.gguf" ^
+  --ctx-size 131072 ^
+  --gpu-layers all ^
+  --parallel 1 ^
+  --no-mmap ^
+  --flash-attn off ^
+  --cache-type-k f16 ^
+  --cache-type-v f16 ^
+  --cache-ram 0 ^
+  --spec-type mtp ^
+  --spec-draft-n-max 2 ^
+  --spec-draft-n-min 1 ^
+  --spec-draft-p-min 0.75 ^
+  --ubatch-size 512
 ```
+
+Run the command from the extracted `llama.cpp` folder. The `--ctx-size 131072`
+value is the 128K context production setting used for the recorded n=2 anchor;
+reduce it if the target system does not have enough memory for that context.
 
 ### B. Lemonade Integration With Helper Scripts
 
 Use this path when you want Lemonade to launch this runtime.
 
-From the parent directory of the extracted `lemonade` folder:
+From the directory where you downloaded the ZIP:
 
 ```cmd
+mkdir lemonade
+tar -xf lemonade-b1294-windows-rocm-gfx1151-x64.zip -C lemonade
 cd lemonade
 ```
 
@@ -182,6 +206,11 @@ Set these variables in the Windows user environment, then restart Lemonade:
 [Environment]::SetEnvironmentVariable("GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX", "1", "User")
 [Environment]::SetEnvironmentVariable("GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX_TILE", "4096", "User")
 ```
+
+`GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX_TILE=4096` is the conservative default
+used by this package. Larger tile values such as `8192` and above are also
+supported by this gfx1151 runtime; if you change the value, keep it as an
+integer environment variable and retest throughput on the target machine.
 
 #### Lemonade Config
 
