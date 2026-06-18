@@ -61,7 +61,7 @@ From the parent directory of the extracted `llama.cpp` folder:
 
 ```cmd
 cd llama.cpp
-scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf" -BindHost 127.0.0.1 -Port 8080
+scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf"
 ```
 
 This command uses:
@@ -78,8 +78,9 @@ required process-level environment variables, builds the `llama-server.exe`
 argument list, and starts the server. It does not permanently change Windows
 user or system environment variables.
 
-`-BindHost 127.0.0.1` and `-Port 8080` are local example defaults; change them
-only when the target PC needs a different bind address or port.
+The helper script binds to the local example defaults unless you override them.
+Append `-BindHost <address>` or `-Port <port>` only when the target PC needs a
+different bind address or port.
 
 To run without the helper scripts, set the same environment variables and call
 the server directly:
