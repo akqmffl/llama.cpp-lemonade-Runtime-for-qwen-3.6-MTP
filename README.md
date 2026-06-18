@@ -1,26 +1,14 @@
 # Qwen3.6 MTP Windows ROCm gfx1151 Split Package
 
 Hardware target: this package is built for AMD Ryzen AI Max Series APUs with
-RDNA 3.5 graphics (`gfx1151`). 
+RDNA 3.5 graphics (`gfx1151`). It is not a generic ROCm runtime for other AMD
+GPU architectures.
 
-It is not a generic ROCm runtime for other AMD GPU architectures.
+This release folder is intentionally small at the top level. The deployable
+runtime trees are stored as two ZIP archives:
 
-Recommended model for the highest recorded performance:
-[akqmffl/qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored-GGUF](https://huggingface.co/akqmffl/qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored-GGUF).
-
-The benchmark numbers documented for this runtime were recorded with
-`qwen3.6-27b-Q8_0-MTP-Claude-Opus-Reasoning-uncensored.gguf`. Use that GGUF
-when you want the best reproduced Qwen3.6 MTP performance from this package.
-Other Qwen3.6 MTP GGUFs may run, but they are not the model/runtime pairing
-used for the published `tok/s` and MTP acceptance anchors.
-
-The deployable runtime trees are distributed as GitHub Release assets, not as
-files committed to the git tree.
-
-- [llama-b1294-windows-rocm-gfx1151-x64.zip](https://github.com/akqmffl/llama.cpp-lemonade-Runtime-for-qwen-3.6-MTP/releases/download/b1294/llama-b1294-windows-rocm-gfx1151-x64.zip):
-  standalone llama.cpp runtime, settings, and scripts.
-- [lemonade-b1294-windows-rocm-gfx1151-x64.zip](https://github.com/akqmffl/llama.cpp-lemonade-Runtime-for-qwen-3.6-MTP/releases/download/b1294/lemonade-b1294-windows-rocm-gfx1151-x64.zip):
-  Lemonade runtime replacement/overlay, env presets, config
+- `llama.cpp.zip`: standalone llama.cpp runtime, settings, and scripts.
+- `lemonade.zip`: Lemonade runtime replacement/overlay, env presets, config
   snippets, and scripts.
 
 ## Layout
@@ -28,13 +16,14 @@ files committed to the git tree.
 ```text
 README.md
 .gitattributes
-GitHub Release asset: llama-b1294-windows-rocm-gfx1151-x64.zip
+assets/usdt-qr.png
+llama.cpp.zip
   README.md
   runtime/   Full directly built llama.cpp runtime payload.
   settings/  Qwen3.6 Claude-Opus benchmark/runtime JSON settings.
   scripts/   Convenience launch scripts for llama-server.exe.
 
-GitHub Release asset: lemonade-b1294-windows-rocm-gfx1151-x64.zip
+lemonade.zip
   README.md
   runtime/full-replacement/  Full runtime folder for Lemonade copy/paste.
   runtime/minimal-overlay/   ABI-safe minimal overwrite set for an existing
@@ -44,8 +33,8 @@ GitHub Release asset: lemonade-b1294-windows-rocm-gfx1151-x64.zip
   scripts/                   Runtime/env/config apply helpers.
 ```
 
-Download and extract only the ZIP archive you need. After extraction, the paths
-shown below refer to the extracted `llama.cpp/` or `lemonade/` folder.
+Extract only the ZIP archive you need. After extraction, the paths shown below
+refer to the extracted `llama.cpp/` or `lemonade/` folder.
 
 The `llama.cpp/runtime/` and `lemonade/runtime/full-replacement/` folders
 preserve the standard Windows ROCm llama.cpp executable layout: server binary,
@@ -58,22 +47,19 @@ the matching ROCm vendor DLLs plus `hipblaslt/` and `rocblas/` directories.
 
 ## Quick Start
 
-The ZIP files are self-rooted: their contents start with `README.md`,
-`runtime\`, `settings\`, and related folders, not with an extra top-level
-wrapper directory. Create the destination folder first, then extract the ZIP
-into it. Replace every placeholder path such as `C:\path\to\model.gguf` or
-`C:\path\to\lemonade` with the actual path on the target PC.
+First extract `llama.cpp.zip` into a folder named `llama.cpp`, or extract
+`lemonade.zip` into a folder named `lemonade`. Replace every placeholder path
+such as `C:\path\to\model.gguf` or `C:\path\to\lemonade` with the actual path on
+the target PC.
 
 ### A. Standalone llama.cpp
 
 Use this path when you want to run `llama-server.exe` directly, without
 Lemonade.
 
-From the directory where you downloaded the ZIP:
+From the parent directory of the extracted `llama.cpp` folder:
 
 ```cmd
-mkdir llama.cpp
-tar -xf llama-b1294-windows-rocm-gfx1151-x64.zip -C llama.cpp
 cd llama.cpp
 scripts\start-production-n2.cmd -ModelPath "C:\path\to\model.gguf" -BindHost 127.0.0.1 -Port 8080
 ```
@@ -109,12 +95,10 @@ set LLAMA_MTP_GDN_DIRECT_SNAPSHOT=1
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX=1
 rem 4096 is the conservative default. 8192 or larger is also supported on this gfx1151 runtime after local throughput retesting.
 set GGML_HIP_MTP_VERIFIER_GFX1151_ARGMAX_TILE=4096
-set LLAMA_HOST=127.0.0.1
-set LLAMA_PORT=8080
 
 runtime\llama-server.exe ^
-  --host %LLAMA_HOST% ^
-  --port %LLAMA_PORT% ^
+  --host 127.0.0.1 ^
+  --port 8080 ^
   --model "C:\path\to\model.gguf" ^
   --ctx-size 131072 ^
   --gpu-layers all ^
@@ -135,20 +119,18 @@ Run the command from the extracted `llama.cpp` folder. The `--ctx-size 131072`
 value is the 128K context production setting used for the recorded n=2 anchor;
 reduce it if the target system does not have enough memory for that context.
 
-`LLAMA_HOST=127.0.0.1` and `LLAMA_PORT=8080` are example local defaults. Change
-`LLAMA_PORT` when another service already uses that port. Keep
-`LLAMA_HOST=127.0.0.1` for local-only access; use another bind address only
-when you intentionally expose the server outside the local machine.
+The `--host 127.0.0.1` and `--port 8080` values are local example defaults.
+Change `--port` when another service already uses that port. Keep
+`--host 127.0.0.1` for local-only access; use another bind address only when
+you intentionally expose the server outside the local machine.
 
 ### B. Lemonade Integration With Helper Scripts
 
 Use this path when you want Lemonade to launch this runtime.
 
-From the directory where you downloaded the ZIP:
+From the parent directory of the extracted `lemonade` folder:
 
 ```cmd
-mkdir lemonade
-tar -xf lemonade-b1294-windows-rocm-gfx1151-x64.zip -C lemonade
 cd lemonade
 ```
 
@@ -289,10 +271,9 @@ SHA-256: 7E70C443971F26DE6734444D7E459B9EF5136D9F96B480FDD4A3482190699284
 | n=2 reasoning off | 128K ctx, 4096 generated tokens, FA off | 15.413 tok/s, 93.182% acceptance |
 | n=3 chat stream | 8192 ctx, 100 generated tokens, FA off | 18.050 tok/s, 97.333% acceptance, exact |
 
-Model GGUF files are not included. After extracting
-`llama-b1294-windows-rocm-gfx1151-x64.zip`, use the `llama.cpp/scripts`
-launchers with `-ModelPath "C:\path\to\model.gguf"`, or configure Lemonade to
-point at the model location on the target PC.
+Model GGUF files are not included. After extracting `llama.cpp.zip`, use the
+`llama.cpp/scripts` launchers with `-ModelPath "C:\path\to\model.gguf"`, or
+configure Lemonade to point at the model location on the target PC.
 
 ## Upload Note
 
@@ -312,7 +293,7 @@ wnxor92@gmail.com
 If this work is useful to you, donations help support continued development,
 testing, packaging, and open-source optimization work for local LLM runtimes.
 
-USDT(trx, Tron Network) address:
+USDT address:
 
 ```text
 TU4rcQsgScdvsL74maMzjVBUuKwgq4UrKr
